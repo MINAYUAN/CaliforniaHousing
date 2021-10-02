@@ -7,16 +7,17 @@ Los Angeles in California has one of the highest housing price in the US. Like o
 
 
 S&P/Case-Shiller CA-Los Angeles Home Price Index
+[image]
 
 Source: https://fred.stlouisfed.org/series/LXXRSA
 
 We want to build a free property appraisal model that consideres historical traded prices, the neighborhood, tax policy and property-related factors for sellers and buyers in the general public to understand how competitive their listing price is. Through looking at historical prices, the appraisal model takes into account of possibilities of a house being overpriced and underprice by the housing market momentum. 
 
 Appearance in the order of the least to most expansive postal code in Los Angeles.
-
+[image]
 
 ## Model Results and Demontration
-We applied seven modelling methods in this prediction problem: OLS Linear Regression, Polynomial Regression, Ridge, Lasso, Elastic Net Regularized Regression, Tree-based (Random Forest), and K Nearnest Neighbor. Our associated quantitative measure of success is Root Mean Squared Errors (RMSE). This measure will reflect error in dollar term. 
+We applied seven modelling methods in this prediction problem: OLS Linear Regression, Polynomial Regression, Ridge, Lasso, Elastic Net Regularized Regression, Tree-based (Random Forest), and K Nearnest Neighbor. Our associated quantitative measure of success is Root Mean Squared Errors (RMSE). This measure will reflect error in dollar term. It helps understand the performance of each model by measuring how far away the the predicted houses price could be from the sold price, given the information in various factors we considered. 
 
 | Method | RMSE ($) |
 | ------------- | ------------- |
@@ -30,25 +31,12 @@ We applied seven modelling methods in this prediction problem: OLS Linear Regres
 | PCR (ncomp 13-Max) 10-fold CV  | $365,157  |
 | KNN-14 (Top 1% price removed - Single Family)  | $291.658  |
 
-
+By comparing RMSEs, we recognized nonlinear methods generate lower MSE than linear methods, sepcifically, we see better results when we tailor our model specifically for regular single family homes, which is the majority of the real estates in Los Angeles.
  
 
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
-
-
+Demonstration
+The following is the property located in 21512 Broadwell Ave, Torrance, CA 90502. The single family house has 3 beds and 2.5 bath with 1905 sqft. It has sold for $659,700 on 4/30/2019. Our model predicts its current value to be $636,785 with a 90% confidence interval between $ 568,089 and $ 721,367.
+[image]
 
 
 ## Data Collection
