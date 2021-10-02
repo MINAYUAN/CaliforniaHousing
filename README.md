@@ -3,19 +3,53 @@
 ## Introduction
 
 
-Los California has one of the highest housing price in the US. Like other metropolitan area, housing price has been on a upward trend.
+Los Angeles in California has one of the highest housing price in the US. Like other metropolitan area, housing price has been on a upward trend.
 
 
 S&P/Case-Shiller CA-Los Angeles Home Price Index
 
 Source: https://fred.stlouisfed.org/series/LXXRSA
 
-We want to build a free property appraisal model that consideres historical traded prices, the neighborhood, tax policy and property-related factors for sellers and buyers in the general public to understand how competitive their listing price is. Through looking at historical prices, the appraisal model takes into account of possibilities of a house being overpriced and underprice by the housing market momentum. Our associated quantitative measure of success is Root Mean Squared Errors (RMSE). This measure will reflect error in dollar term. 
+We want to build a free property appraisal model that consideres historical traded prices, the neighborhood, tax policy and property-related factors for sellers and buyers in the general public to understand how competitive their listing price is. Through looking at historical prices, the appraisal model takes into account of possibilities of a house being overpriced and underprice by the housing market momentum. 
 
-Appearance in the order of the least to most expansive postal code in Los Angeles
+Appearance in the order of the least to most expansive postal code in Los Angeles.
 
 
 ## Model Results and Demontration
+We applied seven modelling methods in this prediction problem: OLS Linear Regression, Polynomial Regression, Ridge, Lasso, Elastic Net Regularized Regression, Tree-based (Random Forest), and K Nearnest Neighbor. Our associated quantitative measure of success is Root Mean Squared Errors (RMSE). This measure will reflect error in dollar term. 
+
+| Method | RMSE ($) |
+| ------------- | ------------- |
+| Linear Regression   | $476,465  |
+| Linear Regression (Lasso)  | $487,748  |
+| Linear Regression - Single Family Only  | $473,872  |
+| Linear Regression (Lasso) - Single Family Only  | $449,114  |
+| Linear Regression - Enet  | $488,014  |
+| Linear Regression - Ridge  | $542,271  |
+| Random Forest   | $342,028  |
+| PCR (ncomp 13-Max) 10-fold CV  | $365,157  |
+| KNN-14 (Top 1% price removed - Single Family)  | $291.658  |
+
+
+ 
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
 
 ## Data Collection
 Data used in this model comed from five sources:
