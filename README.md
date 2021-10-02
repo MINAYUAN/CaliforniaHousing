@@ -66,11 +66,15 @@ Using pairs plot to view relationships between variables. We can see some relati
 ## Linear Methods
 ### OLS Linear Regression
 We use OLS to fit the model and test out-of-sample for the full data set and also single family only dataset. To reduce potential noise in the last-sold price, we group them into 21 groups, since thre are 21 police stations to match crime rate by Zip. We also applied fixed effect on rank zip by price and property type to account for unknown/omitted variable bias. Since single family data has smaller RMSE, nonlinear methods will focus seprately on single family properties.
+
 | ------------- | ------------- |
 | R-Square   | 0.89  |
+| ------------- | ------------- |
 | Out-Sample RMSE  | $476,465 and $473,872 (single-family)   |
+| ------------- | ------------- |
 | Large and significant predictors  | beds, baths, square feet, lot size, average real estate tax, average property tax, average mortgage interest rate  |
 | ------------- | ------------- |
+
 
 We also need to make sure the residuals are stationary.
 <img width=“964” src="https://github.com/MINAYUAN/CaliforniaHousing/blob/main/lineareps.png">
@@ -102,7 +106,7 @@ Below are the results of Random Forecast on full data and truncated data (single
 ## K-Nearest Neighbors (KNN Regression)
 Similar to Random Forecast, KNN is a non-linear and non-parametric method. The main idea behind KNN algorithm is to find home prices that is closest to the home value in question and takes the average of the K nearest prices. We suspect this will do very well because a home down the block that has the same structure and properties (Bed, Baths, SQ. FT, etc…) should be similar in prices. 
 
-<img width=“964” src="https://github.com/MINAYUAN/CaliforniaHousing/blob/main/knn_move30.gif">
+<img width=“964” src="https://github.com/MINAYUAN/CaliforniaHousing/blob/main/knn_mov30.gif?raw=true">
 Source: https://importq.wordpress.com/2017/11/24/mnist-analysis-using-knn/
 
 
