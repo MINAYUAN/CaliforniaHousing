@@ -7,7 +7,7 @@ Los Angeles in California has one of the highest housing price in the US. Like o
 
 
 S&P/Case-Shiller CA-Los Angeles Home Price Index
-[image]
+<img width=“964” src="https://github.com/MINAYUAN/CaliforniaHousing/blob/main/CS%20Housing%20Index.png">
 
 Source: https://fred.stlouisfed.org/series/LXXRSA
 
@@ -65,14 +65,15 @@ Using pairs plot to view relationships between variables. We can see some relati
 ## Linear Methods
 ### OLS Linear Regression
 We use OLS to fit the model and test out-of-sample for the full data set and also single family only dataset. To reduce potential noise in the last-sold price, we group them into 21 groups, since thre are 21 police stations to match crime rate by Zip. We also applied fixed effect on rank zip by price and property type to account for unknown/omitted variable bias. Since single family data has smaller RMSE, nonlinear methods will focus seprately on single family properties.
-
+| ------------- | ------------- |
 | R-Square   | 0.89  |
 | Out-Sample RMSE  | $476,465 and $473,872 (single-family)   |
 | Large and significant predictors  | beds, baths, square feet, lot size, average real estate tax, average property tax, average mortgage interest rate  |
+| ------------- | ------------- |
 
 We also need to make sure the residuals are stationary.
 
-** Regularized Linear Regression: Lasso, Ridge, and Elastic Net with Cross Validation **
+### Regularized Linear Regression: Lasso, Ridge, and Elastic Net with Cross Validation
 Lasso penalizes additional use of the factors the heaviest among the three. It has also yielded the lowest out of sample RMSE among them. In both Lasso and Ridge Regularization, the most imporatant predictors are sqft and property tax. In the prediction, we use lambda at 1se.
 
 We observed non-linear relationship exists, which is why we should apply non-linear method next.
