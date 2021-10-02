@@ -67,11 +67,12 @@ Using pairs plot to view relationships between variables. We can see some relati
 ### OLS Linear Regression
 We use OLS to fit the model and test out-of-sample for the full data set and also single family only dataset. To reduce potential noise in the last-sold price, we group them into 21 groups, since thre are 21 police stations to match crime rate by Zip. We also applied fixed effect on rank zip by price and property type to account for unknown/omitted variable bias. Since single family data has smaller RMSE, nonlinear methods will focus seprately on single family properties.
 
-
+|  | Value |
+| ------------- | ------------- |
 | R-Square   | 0.89  |
 | Out-Sample RMSE  | $476,465 and $473,872 (single-family)   |
 | Large and significant predictors  | beds, baths, square feet, lot size, average real estate tax, average property tax, average mortgage interest rate  |
-| ------------- | ------------- |
+
 
 
 We also need to make sure the residuals are stationary.
