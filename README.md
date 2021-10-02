@@ -63,10 +63,33 @@ Data used in this model comed from five sources:
 Using pairs plot to view relationships between variables. We can see some relationships are non-linear, specifically price and square feet, price and average total income, etc. Next, we are start fitting data to a model with target price.  
 
 ## Linear Methods
+** OLS Linear Regression **
+We use OLS to fit the model and test out-of-sample for the full data set and also single family only dataset. To reduce potential noise in the last-sold price, we group them into 21 groups, since thre are 21 police stations to match crime rate by Zip. We also applied fixed effect on rank zip by price and property type to account for unknown/omitted variable bias. Since single family data has smaller RMSE, nonlinear methods will focus seprately on single family properties.
 
+| R-Square   | 0.89  |
+| Out-Sample RMSE  | $476,465 and $473,872 (single-family)   |
+| Large and significant predictors  | beds, baths, square feet, lot size, average real estate tax, average property tax, average mortgage interest rate  |
+
+** Regularized Linear Regression: Lasso, Ridge, and Elastic Net with Cross Validation **
+Lasso penalizes additional use of the factors the heaviest among the three. It has also yielded the lowest out of sample RMSE among them. In both Lasso and Ridge Regularization, the most imporatant predictors are sqft and property tax. In the prediction, we use lambda at 1se.
+
+We observed non-linear relationship exists, which is why we should apply non-linear method next.
+[photo] [photo]
 
 
 ## Non-linear Methods
+** Random Forest **
+*Why Random Forest?*
+Random Forecast is a type of decision tree method. In classic bagging approach, we resample data from the same sample space and fit a model on each tree with re-sampled data. We takes the average of their predictions as our final recommendation. If the re-sampled dataset are independent, variance of the average will decrease by 1/n, where n is the sample size, and can therefore improve our prediction. However, such method produces resampled data set that are correlated because ultimately they come from the same sample space. To de-correlate the resamples, Random Forecast ramdomly selected n out of p predictors (x variables) for each tree/bootstrapped sample. Often, n = \sqrt{p}. In the end, as with classic bagging approach, we also uses the final average as prediction. 
+
+In this project, we set n as 4 (square root of the number of predictors), and ntree as 500, maxnode as 31. We tested maxnodes from 1 to 60 to find out the number of maxnodes that optimized MSE. 
+
+
+Below are the results of Random Forecast on full data and truncated data (single family only and remove data with prices outside of 99% quantile). The full data set out-of-sample RMSE is $423,185, while the truncted sample out-of-sample RMSE reduced to $342,028. Notice the variables that are ranked with higher importance share common varaibles, but ranking changes for some. Random Forest is an improvement on linear methods.
+
+[photo] [photo]
+
+** K-Nearest Neighbors (KNN Regression)
 
 
 
