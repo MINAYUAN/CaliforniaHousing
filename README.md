@@ -14,7 +14,7 @@ Source: https://fred.stlouisfed.org/series/LXXRSA
 We want to build a free property appraisal model that consideres historical traded prices, the neighborhood, tax policy and property-related factors for sellers and buyers in the general public to understand how competitive their listing price is. Through looking at historical prices, the appraisal model takes into account of possibilities of a house being overpriced and underprice by the housing market momentum. 
 
 Appearance in the order of the least to most expansive postal code in Los Angeles.
-[image]
+<img width=“964” src="https://github.com/MINAYUAN/CaliforniaHousing/blob/main/ZipByTypePrice.gif">
 
 ## Model Results and Demontration
 We applied seven modelling methods in this prediction problem: OLS Linear Regression, Polynomial Regression, Ridge, Lasso, Elastic Net Regularized Regression, Tree-based (Random Forest), and K Nearnest Neighbor. Our associated quantitative measure of success is Root Mean Squared Errors (RMSE). This measure will reflect error in dollar term. It helps understand the performance of each model by measuring how far away the the predicted houses price could be from the sold price, given the information in various factors we considered. 
@@ -34,9 +34,10 @@ We applied seven modelling methods in this prediction problem: OLS Linear Regres
 By comparing RMSEs, we recognized nonlinear methods generate lower MSE than linear methods, sepcifically, we see better results when we tailor our model specifically for regular single family homes, which is the majority of the real estates in Los Angeles.
  
 
-Demonstration
+Demonstration:
 The following is the property located in 21512 Broadwell Ave, Torrance, CA 90502. The single family house has 3 beds and 2.5 bath with 1905 sqft. It has sold for $659,700 on 4/30/2019. Our model predicts its current value to be $636,785 with a 90% confidence interval between $ 568,089 and $ 721,367.
-[image]
+<img width=“964” src="https://github.com/MINAYUAN/CaliforniaHousing/blob/main/demohouse.png">
+
 
 
 ## Data Collection
@@ -72,12 +73,17 @@ We use OLS to fit the model and test out-of-sample for the full data set and als
 | ------------- | ------------- |
 
 We also need to make sure the residuals are stationary.
+<img width=“964” src="https://github.com/MINAYUAN/CaliforniaHousing/blob/main/lineareps.png">
+
 
 ### Regularized Linear Regression: Lasso, Ridge, and Elastic Net with Cross Validation
 Lasso penalizes additional use of the factors the heaviest among the three. It has also yielded the lowest out of sample RMSE among them. In both Lasso and Ridge Regularization, the most imporatant predictors are sqft and property tax. In the prediction, we use lambda at 1se.
 
 We observed non-linear relationship exists, which is why we should apply non-linear method next.
-[photo] [photo]
+<img width=“964” src="https://github.com/MINAYUAN/CaliforniaHousing/blob/main/NonlinearRelationship.png">
+
+<img width=“964” src="https://github.com/MINAYUAN/CaliforniaHousing/blob/main/linearreg.png">
+
 
 
 ## Non-linear Methods
@@ -90,19 +96,28 @@ In this project, we set n as 4 (square root of the number of predictors), and nt
 
 Below are the results of Random Forecast on full data and truncated data (single family only and remove data with prices outside of 99% quantile). The full data set out-of-sample RMSE is $423,185, while the truncted sample out-of-sample RMSE reduced to $342,028. Notice the variables that are ranked with higher importance share common varaibles, but ranking changes for some. Random Forest is an improvement on linear methods.
 
-[photo] [photo]
+<img width=“964” src="https://github.com/MINAYUAN/CaliforniaHousing/blob/main/rfimportance.png">
+
 
 ## K-Nearest Neighbors (KNN Regression)
 Similar to Random Forecast, KNN is a non-linear and non-parametric method. The main idea behind KNN algorithm is to find home prices that is closest to the home value in question and takes the average of the K nearest prices. We suspect this will do very well because a home down the block that has the same structure and properties (Bed, Baths, SQ. FT, etc…) should be similar in prices. 
 
+<img width=“964” src="https://github.com/MINAYUAN/CaliforniaHousing/blob/main/knn_move30.gif">
+Source: https://importq.wordpress.com/2017/11/24/mnist-analysis-using-knn/
+
+
 We need to tune KNN model and decide how many neighbors we should consider for our predictional problem. From the summarized table below of our 10-fold cross validation, we found  RMSE of the 13-nearest neighbor regressional model are the lowest. As expected, its out-of-sample RMSE is also the lower than linear methods and Randome Forest at $290,026. 
 
-[photo]
+<img width=“964” src="https://github.com/MINAYUAN/CaliforniaHousing/blob/main/knn10fold.png">
 
 However, in  a special case of k-Fold Cross-Validation where k is equal to the size of data (n), called Leave-One-Out Cross Validation (LOOCV), we found 14-nearest neighbor regressional model to have the lowest RMSE. LOOCV is the case of Cross-Validation where just a single observation is held out for validation. The LOOCV method is computationally expensive, and subject to high variance or overfitting. However, its benefit is ensuring a larger number of training data. 
 
-Using it as an example, we demonstrate how the model choose k and the distribution of the percentage error of our fitted values below. 
+Using it as an example, we demonstrate how the model choose k and the model's residuals below. 
 
+<img width=“964” src="https://github.com/MINAYUAN/CaliforniaHousing/blob/main/knnrmse.png">
+
+
+<img width=“964” src="https://github.com/MINAYUAN/CaliforniaHousing/blob/main/knneps.png">
 
 
 This is a incredibly fun project to applied linear and non-linear methods. Non-linear methods do no always perform linear methods, but in real life dataset, they are needed. Variance-bias traded off should always be in the back of our minds when thinking about predicitional problems!
