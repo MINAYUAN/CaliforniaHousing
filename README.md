@@ -63,12 +63,14 @@ Data used in this model comed from five sources:
 Using pairs plot to view relationships between variables. We can see some relationships are non-linear, specifically price and square feet, price and average total income, etc. Next, we are start fitting data to a model with target price.  
 
 ## Linear Methods
-**OLS Linear Regression**
+### OLS Linear Regression
 We use OLS to fit the model and test out-of-sample for the full data set and also single family only dataset. To reduce potential noise in the last-sold price, we group them into 21 groups, since thre are 21 police stations to match crime rate by Zip. We also applied fixed effect on rank zip by price and property type to account for unknown/omitted variable bias. Since single family data has smaller RMSE, nonlinear methods will focus seprately on single family properties.
 
 | R-Square   | 0.89  |
 | Out-Sample RMSE  | $476,465 and $473,872 (single-family)   |
 | Large and significant predictors  | beds, baths, square feet, lot size, average real estate tax, average property tax, average mortgage interest rate  |
+
+We also need to make sure the residuals are stationary.
 
 ** Regularized Linear Regression: Lasso, Ridge, and Elastic Net with Cross Validation **
 Lasso penalizes additional use of the factors the heaviest among the three. It has also yielded the lowest out of sample RMSE among them. In both Lasso and Ridge Regularization, the most imporatant predictors are sqft and property tax. In the prediction, we use lambda at 1se.
@@ -78,7 +80,7 @@ We observed non-linear relationship exists, which is why we should apply non-lin
 
 
 ## Non-linear Methods
-**Random Forest**
+### Random Forest
 *Why Random Forest?*
 Random Forecast is a type of decision tree method. In classic bagging approach, we resample data from the same sample space and fit a model on each tree with re-sampled data. We takes the average of their predictions as our final recommendation. If the re-sampled dataset are independent, variance of the average will decrease by 1/n, where n is the sample size, and can therefore improve our prediction. However, such method produces resampled data set that are correlated because ultimately they come from the same sample space. To de-correlate the resamples, Random Forecast ramdomly selected n out of p predictors (x variables) for each tree/bootstrapped sample. Often, n = \sqrt{p}. In the end, as with classic bagging approach, we also uses the final average as prediction. 
 
@@ -89,8 +91,20 @@ Below are the results of Random Forecast on full data and truncated data (single
 
 [photo] [photo]
 
-** K-Nearest Neighbors (KNN Regression)
+## K-Nearest Neighbors (KNN Regression)
+Similar to Random Forecast, KNN is a non-linear and non-parametric method. The main idea behind KNN algorithm is to find home prices that is closest to the home value in question and takes the average of the K nearest prices. We suspect this will do very well because a home down the block that has the same structure and properties (Bed, Baths, SQ. FT, etc…) should be similar in prices. 
 
+We need to tune KNN model and decide how many neighbors we should consider for our predictional problem. From the summarized table below of our 10-fold cross validation, we found  RMSE of the 13-nearest neighbor regressional model are the lowest. As expected, its out-of-sample RMSE is also the lower than linear methods and Randome Forest at $290,026. 
+
+[photo]
+
+However, in  a special case of k-Fold Cross-Validation where k is equal to the size of data (n), called Leave-One-Out Cross Validation (LOOCV), we found 14-nearest neighbor regressional model to have the lowest RMSE. LOOCV is the case of Cross-Validation where just a single observation is held out for validation. The LOOCV method is computationally expensive, and subject to high variance or overfitting. However, its benefit is ensuring a larger number of training data. 
+
+Using it as an example, we demonstrate how the model choose k and the distribution of the percentage error of our fitted values below. 
+
+
+
+This is a incredibly fun project to applied linear and non-linear methods. Non-linear methods do no always perform linear methods, but in real life dataset, they are needed. Variance-bias traded off should always be in the back of our minds when thinking about predicitional problems!
 
 
 
