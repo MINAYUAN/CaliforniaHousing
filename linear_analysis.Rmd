@@ -1,0 +1,303 @@
+---
+title: "Housing_Linear_Analysis"
+author: "Mina Yuan"
+date: "31/05/2020"
+output: pdf_document
+---
+
+```{r library, warning = F, echo = FALSE}
+library(data.table)
+library(lfe)
+library(anytime)
+library(ggplot2)
+library(DataAnalytics)
+library(dplyr)
+library(stargazer)
+library(Metrics)
+library(glmnet)
+```
+
+
+```{r data cleaning (no need to run), echo = FALSE}
+# 2017 income tax data
+income = fread("/Users/minayuan/Desktop/Machine Learning/Housing Apraisal Project/tax2.csv")
+data = fread("/Users/minayuan/Desktop/Machine Learning/Housing Apraisal Project/Final_Housing.csv")
+data[, Date := anydate(Date)]
+
+zipdict = unique(data$ZIP.OR.POSTAL.CODE)
+total = income[is.na(`Size of adjusted gross income`)]
+total = total[!is.na(`ZIP Code`)]
+
+total[,`Total income Number of returns` := as.numeric(`Total income Number of returns`)]
+total[,`Total Income Amount` := as.numeric(`Total Income Amount`)]  
+total[,`Real estate taxes Number of returns` := as.numeric(`Total Income Amount`)]  
+total[,`Real estate taxes Amount` := as.numeric(`Real estate taxes Amount`)]  
+total[,`Personal property taxes Number of returns` := as.numeric(`Personal property taxes Number of returns`)]  
+total[,`Personal property taxes Amount` := as.numeric(`Personal property taxes Amount`)]  
+total[,`Home mortgage interest paid Number of returns` := as.numeric(`Home mortgage interest paid Number of returns`)]  
+total[,`Home mortgage interest paid Amount` := as.numeric(`Home mortgage interest paid Amount`)]  
+total[,`Size of adjusted gross income`:=NULL]
+
+total[,AvgTotalIncome := `Total Income Amount`/`Total income Number of returns`]
+total[,AvgRealEstateTax := `Real estate taxes Amount`/`Real estate taxes Number of returns`]
+total[,AvgPropertyTax := `Personal property taxes Amount`/`Personal property taxes Number of returns`]
+total[,AvgMortgageInt := `Home mortgage interest paid Amount`/`Home mortgage interest paid Number of returns`]
+
+taxoutput = total[,c('ZIP Code','AvgTotalIncome','AvgRealEstateTax','AvgPropertyTax','AvgMortgageInt')]
+taxoutput = na.omit(taxoutput)
+data = merge(data,total[,c('ZIP Code','AvgTotalIncome','AvgRealEstateTax','AvgPropertyTax','AvgMortgageInt')],by.x ='ZIP.OR.POSTAL.CODE',by.y = 'ZIP Code',all.x = T )
+
+fwrite(taxoutput,"/Users/minayuan/Desktop/Machine Learning/Housing Apraisal Project/Tax3.csv")
+
+# remove outlier
+sqft100 = data[SQUARE.FEET <= 100]
+data = data[SQUARE.FEET > 100]
+
+# add rank of zip code by avg time series price as a factor
+# 1 = lowest price zips, 5 = highest price zips
+avgprc = data[,list(mprice = mean(ORIGINAL_PRC)),by = ZIP.OR.POSTAL.CODE]
+avgprc[,rank:=cut(mprice,quantile(mprice,seq(0,1,0.2)),include.lowest = T,labels = F)]
+for (i in 1:length(zipdict)){
+  data[ZIP.OR.POSTAL.CODE==zipdict[i], PrcRank:=avgprc[ZIP.OR.POSTAL.CODE==zipdict[i],rank]]
+}
+# 1 = lowest price zips, 21 = highest price zips
+avgprc2 = data[,list(mprice = mean(ORIGINAL_PRC)),by = ZIP.OR.POSTAL.CODE]
+avgprc2[,rank:=cut(mprice,quantile(mprice,seq(0,1,1/21)),include.lowest = T,labels = F)]
+for (i in 1:length(zipdict)){
+  data[ZIP.OR.POSTAL.CODE==zipdict[i], PrcRank2:=avgprc2[ZIP.OR.POSTAL.CODE==zipdict[i],rank]]
+}
+
+# more data cleaning
+data = na.omit(data)
+data = unique(data)
+data = data[PRICE <= quantile(data$PRICE, 0.999)]
+data = data[PRICE >= 100000]
+data = data[LOT.SIZE <= 300000]
+quantile(avgprc$mprice,seq(0,1,0.2))
+data = data[LOT.SIZE > 100]
+
+
+typedict=sort(unique(data$PROPERTY.TYPE))
+for (i in 1:length(typedict)){
+  data[PROPERTY.TYPE==typedict[i], PROPERTY.TYPE.N := seq(1:5)[i]]
+}
+
+# merge to get crime and bed
+update2 = fread("/Users/minayuan/Desktop/Machine Learning/Housing Apraisal Project/Final_Housing_Updated2.csv")
+update2 = update2[,c('ZIP','numCrimes','hospital_bed')]
+crimedict = unique(update2[,c('ZIP','numCrimes')])
+hbeddict = unique(update2[,c('ZIP','hospital_bed')])
+for (i in 1:length(zipdict)){
+  data[ZIP.OR.POSTAL.CODE==zipdict[i], numCrimes := crimedict[ZIP == zipdict[i],numCrimes]]
+  data[ZIP.OR.POSTAL.CODE==zipdict[i], numCrimes := hbeddict[ZIP == zipdict[i],hospital_bed]]
+}
+colnames(data)[1] = 'ZIP'
+
+# create unique id
+data[,ID:=as.numeric(rownames(data))]
+data[,Country:='United States']
+
+fwrite(data, "/Users/minayuan/Desktop/Machine Learning/Housing Apraisal Project/Final_Housing_Updated3.csv")
+
+legend = data.table(PrcRank=c(seq(1:5),rep(NA,21-5)),
+                    PrcRankDesc=c(as.character(sort(unique(cut(avgprc$mprice,quantile(avgprc$mprice,seq(0,1,0.2)),include.lowest = T,ordered_result = F)))),rep(NA,21-5)),
+                    PrcRank2=seq(1:21),
+                    PrcRank2Desc=sort(unique(cut(avgprc2$mprice,quantile(avgprc2$mprice,seq(0,1,1/21)),include.lowest = T,ordered_result = F))),
+                    PROPERTY.TYPE=c(typedict,rep(NA,21-5)),
+                    PROPERTY.TYPE.N=c(seq(1:5),rep(NA,21-5)))
+fwrite(legend, "/Users/minayuan/Desktop/Machine Learning/Housing Apraisal Project/Legend.csv")
+```
+
+Preliminary data visualization
+The pair plot shows the relationship between different variables. We observe that the price and and the properties square feet is definitely not a linear relationship. Taking the log transformation of both variables resulted in a more linear relationship. This is a similar case for other variables such as Average Total Income, Average Real Estate Tax, etc. Additionally, the distribution of price is log normal. Therefore, it makes sense to take the log transformation of price. Henceforth a non-linear regression would yield a better result.
+```{r visualization, echo = FALSE}
+data = fread("/Users/minayuan/Desktop/Machine Learning/Housing Apraisal Project/Final_Housing_Updated3.csv")
+sample_data = subset(data, select = c("ZIP","PRICE","BEDS","BATHS","SQUARE.FEET","LOT.SIZE","Age",
+                              "AvgTotalIncome", "AvgRealEstateTax", "AvgPropertyTax", "AvgMortgageInt",
+                              "PrcRank", "PROPERTY.TYPE.N", "numCrimes"))
+
+# more data cleaning
+lot_size_errors = data[data$LOT.SIZE > 300000]
+data = data[data$LOT.SIZE <= 300000]
+
+pairs(sample_n(sample_data, 500))
+
+ggplot(data, aes(y = PRICE, x = SQUARE.FEET, color = PROPERTY.TYPE)) + geom_point(size = 2, alpha = 0.3) +
+  ggtitle("Price vs Square Feet by property type")
+
+ggplot(data, aes(y = log(PRICE), x = log(SQUARE.FEET), color = PROPERTY.TYPE)) + geom_point(size = 2, alpha = 0.3) +
+  ggtitle("lnPrice vs lnSquareFeet by property type")
+
+ggplot(data, aes(y = PRICE, x = AvgTotalIncome, color = PROPERTY.TYPE)) + geom_point(size = 2, alpha = 0.3) +
+  ggtitle("Price vs Average Total Income by property type")
+
+ggplot(data, aes(y = PRICE, x = AvgRealEstateTax, color = PROPERTY.TYPE)) + geom_point(size = 2, alpha = 0.3) +
+  ggtitle("Price vs Average Real Estate Tax by property type")
+
+ggplot(data, aes(y = PRICE, x = AvgPropertyTax, color = PROPERTY.TYPE)) + geom_point(size = 2, alpha = 0.3) +
+  ggtitle("Price vs Average Property Tax by property type")
+
+ggplot(data, aes(y = PRICE, x = AvgMortgageInt, color = PROPERTY.TYPE)) + geom_point(size = 2, alpha = 0.3) +
+  ggtitle("Price vs Average Mortgage Interest by property type")
+
+par(mfrow = c(2,1))
+hist(data$PRICE, main = "Housing Price")
+hist(log(data$PRICE), main = "Log Housing Price")
+```
+
+
+(Y) Target: log original sold price
+(X) Predictors:
+1. BEDS
+2. BATHS (taken out in 2nd full regression)
+3. SQUARE.FEET
+4. LOT.SIZE (taken out in 2nd full regression)
+5. Age
+6. AvgTotalIncome
+7. AvgRealEstateTax
+8. AvgPropertyTax
+9. AvgMortgageInt
+10. PrcRank2
+11. PROPERTY.TYPE
+12. numCrimes (taken out in 2nd full regression)
+
+Conclusion: R-square around x, MSE for log price around x before and after removing the 3 variables. Linear regression maybe a good model for housing price prediction, after taking the log of sold price, square feet, and x to remove some non-linearities.
+```{r Full in-sample, warning = F, echo = FALSE}
+# Use 12 Predictors
+data[,logsqft:= log(SQUARE.FEET)]
+
+data[, PrcRank2 := as.factor(PrcRank2)]
+data[, PROPERTY.TYPE := as.factor(PROPERTY.TYPE.N)]
+
+lmfull1 = lm(log(ORIGINAL_PRC) ~ BEDS + BATHS + logsqft + LOT.SIZE + Age  +
+               AvgTotalIncome + AvgRealEstateTax + AvgPropertyTax +AvgMortgageInt + PrcRank2 + PROPERTY.TYPE + numCrimes, data = data)
+
+logpredfull1 = predict(lmfull1,newdata = data[,c("BEDS","BATHS","logsqft", "LOT.SIZE", "Age", "AvgTotalIncome",
+                                                "AvgRealEstateTax","AvgPropertyTax","AvgMortgageInt","PrcRank2","PROPERTY.TYPE", "numCrimes")])
+fullmse1 = mse(exp(logpredfull1),data$ORIGINAL_PRC)
+fullrmse1 = rmse(exp(logpredfull2),log(data$ORIGINAL_PRC))
+
+
+
+# Use 9 Predictors: take out number of bath, number of crimes, and lot size
+lmfull2 = lm(log(ORIGINAL_PRC) ~ BEDS + logsqft + Age + AvgTotalIncome + AvgRealEstateTax +
+               AvgPropertyTax +AvgMortgageInt + PrcRank2 + PROPERTY.TYPE, data = data)
+logpredfull2 = predict(lmfull2,newdata = data[,c("BEDS","logsqft", "Age", "AvgTotalIncome",
+                                                "AvgRealEstateTax","AvgPropertyTax","AvgMortgageInt","PrcRank2","PROPERTY.TYPE")])
+fullmse2 = mse(exp(logpredfull2),data$ORIGINAL_PRC)
+fullrmse2 = rmse(exp(logpredfull2),data$ORIGINAL_PRC)
+
+# Output
+fullmse1
+fullmse2
+
+fullrmse1
+fullrmse2
+#summary(lmfull1)
+#summary(lmfull2)
+stargazer(lmfull1,lmfull2,type = 'text', report = 'vc*t')
+plot(lmfull1$residuals,type = 'l',ylab = "Residuals",xlab='Data Point',main='In-of-Sample Log Price Residuals') # actual price difference
+
+
+
+```
+
+
+Splitting data ramdomly into training and test data set with 7 to 3 ratio. Train linear model on the training dataset, then test the model on test dataset. Out-of-sample MSE is x, and RMSE is x.
+```{r Split and test out-sample, echo = FALSE}
+# In and Out Sample
+data$PrcRank2 = as.numeric(data$PrcRank2)
+
+train = sample_n(data,0.7*dim(data)[1])
+testID = data$ID[!(data$ID %in%  train$ID)]
+test = data[ID %in% testID,]
+
+lm1train = lm(log(ORIGINAL_PRC) ~ BEDS + BATHS + logsqft + LOT.SIZE + Age +AvgTotalIncome +
+                AvgRealEstateTax + AvgPropertyTax + AvgMortgageInt + PrcRank2 + PROPERTY.TYPE, data = train)
+
+logpred = predict(lm1train,newdata = test[,c("BEDS","BATHS","logsqft", "LOT.SIZE", "Age", "AvgTotalIncome",
+                                             "AvgRealEstateTax","AvgPropertyTax","AvgMortgageInt","PrcRank2","PROPERTY.TYPE")])
+
+# Prediction error is small, but bad for outlier predictions
+outmse = mse(logpred,log(test$ORIGINAL_PRC)) # log scale mse
+outrmse = rmse(logpred,log(test$ORIGINAL_PRC))# log scale mse
+outmse
+outrmse
+plot(log(test$ORIGINAL_PRC)-logpred,type='l',ylab = "Residuals",xlab='Data Point',main='Out-of-Sample Log Price Residuals') # actual price difference
+
+```
+
+(Y) Target: log original sold price
+(X) Predictors:
+1. BEDS
+2. BATHS (taken out in 2nd full regression)
+3. SQUARE.FEET
+4. LOT.SIZE (taken out in 2nd full regression)
+5. Age
+6. AvgTotalIncome
+7. AvgRealEstateTax
+8. AvgPropertyTax
+9. AvgMortgageInt
+10. PrcRank2
+11. PROPERTY.TYPE
+12. numCrimes (taken out in 2nd full regression)
+
+Since there is variable that is not significant in linear regression, use regularization to improve.
+In all three, log square feet, average selling price of the area, average property tax, and average mortagage interest payment (sometimes) remains important.
+On the contrary, bath, beds, lot size, age, and average total income are reduced and removed in some cases.
+There is also non linearity as we can observed from the pattern of regularization of the predictors as log lambda increases.
+MSE of the elastic net log price prediction is 0.0548654.
+MSE of the lasso log price prediction is 0.05479795.
+MSE of the ridge log price prediction is  0.05598222.
+We can see the three methods have similar MSE, but lasso has the lowest, while ridge has the highest MSE.
+This means the there is parameter not very important to the price of a house, and non-linearity that could be dealt with better with other non-linear methods.
+
+
+```{r Elastic Net Regularization, echo = FALSE}
+set.seed(0)
+
+train_target = as.vector(log(train$ORIGINAL_PRC))
+test_target = as.vector(log(test$ORIGINAL_PRC))
+train_regressor = as.matrix(train[,c("BEDS","BATHS","logsqft", "LOT.SIZE", "Age", "AvgTotalIncome",
+                                     "AvgRealEstateTax","AvgPropertyTax","AvgMortgageInt","PrcRank2","PROPERTY.TYPE.N")])
+test_regressor = as.matrix(test[,c("BEDS","BATHS","logsqft", "LOT.SIZE", "Age", "AvgTotalIncome",
+                                   "AvgRealEstateTax","AvgPropertyTax","AvgMortgageInt","PrcRank2","PROPERTY.TYPE.N")])
+
+
+enet = cv.glmnet(x = train_regressor, y = train_target ,nfolds = 10, alpha = 0.5)
+pred_enet_mse = mse(exp(predict(enet,test_regressor)),test$PRICE)
+pred_enet_rmse = sqrt(pred_enet_mse)
+plot(enet$glmnet.fit, "lambda", label = TRUE, main = "Elastic Net Regularization")
+plot(enet$glmnet.fit, "lambda", label = TRUE, ylim = c(-0.001,0.001), main = "Elastic Net Regularization (Zoom in)")
+plot(enet, main = "Elastic Net MSE VS log Lambda")
+pred_enet_mse
+pred_enet_rmse
+# enet at log lambda9 1 SE, 4 (lot size) and 7 (realestate tax) got deleted
+```
+
+
+```{r Lasso, echo = FALSE}
+# Lasso(alpha=1)
+lasso = cv.glmnet(x = train_regressor, y = train_target ,nfolds = 10, alpha = 1)
+pred_lasso_mse = mse(exp(predict(lasso,test_regressor)),test$ORIGINAL_PRC)
+pred_lasso_rmse =  sqrt(pred_lasso_mse)
+plot(lasso$glmnet.fit, "lambda", label = TRUE, main = "Lasso Regularization")
+plot(lasso$glmnet.fit, "lambda", label = TRUE, ylim = c(-0.001,0.001), main = "Lasso Regularization (Zoom in)")
+plot(lasso, main = "Lasso MSE vs log lambda")
+pred_lasso_mse
+pred_lasso_rmse
+
+```
+
+```{r Ridge, echo = FALSE}
+# Ridge(alpha=0)
+# 1 final model -> 1 mse for 1 set of test sample
+ridge = cv.glmnet(x = train_regressor, y = train_target ,nfolds = 10, alpha = 0)
+pred_ridge_mse = mse(exp(predict(ridge,test_regressor)),test$ORIGINAL_PRC)
+pred_ridge_rmse =  sqrt(pred_lasso_mse)
+plot(ridge$glmnet.fit, "lambda", label = TRUE, main = "Ridge Regularization")
+plot(ridge$glmnet.fit, "lambda", label = TRUE, ylim = c(-0.002,0.06), main = "Ridge Regularization(Zoom in)")
+plot(ridge, main = "Ridge MSE vs log lambda")
+pred_ridge_mse
+pred_ridge_rmse
+```
