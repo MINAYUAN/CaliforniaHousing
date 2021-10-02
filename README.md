@@ -67,11 +67,9 @@ Using pairs plot to view relationships between variables. We can see some relati
 ### OLS Linear Regression
 We use OLS to fit the model and test out-of-sample for the full data set and also single family only dataset. To reduce potential noise in the last-sold price, we group them into 21 groups, since thre are 21 police stations to match crime rate by Zip. We also applied fixed effect on rank zip by price and property type to account for unknown/omitted variable bias. Since single family data has smaller RMSE, nonlinear methods will focus seprately on single family properties.
 
-| ------------- | ------------- |
+
 | R-Square   | 0.89  |
-| ------------- | ------------- |
 | Out-Sample RMSE  | $476,465 and $473,872 (single-family)   |
-| ------------- | ------------- |
 | Large and significant predictors  | beds, baths, square feet, lot size, average real estate tax, average property tax, average mortgage interest rate  |
 | ------------- | ------------- |
 
@@ -92,6 +90,7 @@ We observed non-linear relationship exists, which is why we should apply non-lin
 
 ## Non-linear Methods
 ### Random Forest
+
 *Why Random Forest?*
 Random Forecast is a type of decision tree method. In classic bagging approach, we resample data from the same sample space and fit a model on each tree with re-sampled data. We takes the average of their predictions as our final recommendation. If the re-sampled dataset are independent, variance of the average will decrease by 1/n, where n is the sample size, and can therefore improve our prediction. However, such method produces resampled data set that are correlated because ultimately they come from the same sample space. To de-correlate the resamples, Random Forecast ramdomly selected n out of p predictors (x variables) for each tree/bootstrapped sample. Often, n = \sqrt{p}. In the end, as with classic bagging approach, we also uses the final average as prediction. 
 
@@ -104,6 +103,7 @@ Below are the results of Random Forecast on full data and truncated data (single
 
 
 ## K-Nearest Neighbors (KNN Regression)
+
 Similar to Random Forecast, KNN is a non-linear and non-parametric method. The main idea behind KNN algorithm is to find home prices that is closest to the home value in question and takes the average of the K nearest prices. We suspect this will do very well because a home down the block that has the same structure and properties (Bed, Baths, SQ. FT, etc…) should be similar in prices. 
 
 <img width=“964” src="https://github.com/MINAYUAN/CaliforniaHousing/blob/main/knn_mov30.gif?raw=true">
