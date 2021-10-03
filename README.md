@@ -115,7 +115,7 @@ We need to tune KNN model and decide how many neighbors we should consider for o
 
 <img width=“964” src="https://github.com/MINAYUAN/CaliforniaHousing/blob/main/knn10fold.png">
 
-However, in  a special case of k-Fold Cross-Validation where k is equal to the size of data (n), called Leave-One-Out Cross Validation (LOOCV), we found 14-nearest neighbor regressional model to have the lowest RMSE. LOOCV is the case of Cross-Validation where just a single observation is held out for validation. The LOOCV method is computationally expensive, and subject to high variance or overfitting. However, its benefit is ensuring a larger number of training data. 
+However, in a special case of k-Fold Cross-Validation where k is equal to the size of data (n), called Leave-One-Out Cross Validation (LOOCV), we found 14-nearest neighbor regressional model to have the lowest RMSE. LOOCV is the case of Cross-Validation where just a single observation is held out for validation. The LOOCV method is computationally expensive, and subject to high variance or overfitting. However, its benefit is ensuring a larger number of training data. 
 
 Using it as an example, we demonstrate how the model choose k and the model's residuals below. 
 
@@ -125,7 +125,7 @@ Using it as an example, we demonstrate how the model choose k and the model's re
 <img width=“964” src="https://github.com/MINAYUAN/CaliforniaHousing/blob/main/knneps.png">
 
 
-This is a incredibly fun project to applied linear and non-linear methods. Non-linear methods do no always perform linear methods, but in real life dataset, they are needed. Variance-bias traded off should always be in the back of our minds when thinking about predicitional problems!
+This is an incredibly fun project to apply linear and non-linear methods. Non-linear methods do not always perform linear methods, but they are sometimes better suited for real life dataset. Variance bias traded off should always be in the back of our minds when thinking about predicitional problems.
 
 
 
