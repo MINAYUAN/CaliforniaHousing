@@ -29,7 +29,7 @@ We applied seven modelling methods in this prediction problem: OLS Linear Regres
 | Linear Regression - Ridge  | $542,271  |
 | Random Forest   | $342,028  |
 | PCR (ncomp 13-Max) 10-fold CV  | $365,157  |
-| KNN-14 (Top 1% price removed - Single Family)  | $291.658  |
+| KNN-14 (Top 1% price removed - Single Family)  | $291,658  |
 
 By comparing RMSEs, we recognized nonlinear methods generate lower MSE than linear methods, sepcifically, we see better results when we tailor our model specifically for regular single family homes, which is the majority of the real estates in Los Angeles.
  
